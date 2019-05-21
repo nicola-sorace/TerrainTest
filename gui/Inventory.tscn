@@ -1,0 +1,61 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends WindowDialog
+
+const SLOT = preload(\"res://gui/ItemSlot.tscn\")
+const W = 4  # Number of slots per row
+
+var obj = null
+var inventory = {}
+var inv_len = 0
+
+func load_inventory(obj):
+	self.obj = obj
+	inventory = obj.inventory
+	inv_len = obj.inv_len
+	
+	if obj != game.player:
+		set_title(obj.title)
+	
+	for i in range(obj.inv_len):
+		var slot = SLOT.instance()
+		slot._ready()
+		slot.set_position(Vector2(10+70*(i-floor(i/W)*W), 10+70*floor(i/W)))
+		slot.set_item(inventory, i)
+		add_child(slot)
+	
+	set_size(Vector2(W*70+10, ceil(obj.inv_len/float(W))*70+10))
+	if obj != game.player:
+		set_position(get_viewport().get_mouse_position())
+	
+	get_close_button().connect(\"pressed\", self, \"close\")
+
+func _ready():
+	connect(\"focus_entered\", self, \"move_to_top\")
+
+func _process(delta):
+	if (game.player.get_translation()-obj.get_translation()).length() > game.MELEE_RANGE:
+		close()
+
+func move_to_top():
+	get_parent().move_child(self, get_parent().get_child_count())
+
+func close():
+	obj.inv_view = null
+	queue_free()"
+
+[node name="Inventory" type="WindowDialog"]
+visible = true
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -390.0
+margin_top = -470.0
+margin_right = -100.0
+margin_bottom = -100.0
+focus_mode = 2
+window_title = "Inventory"
+script = SubResource( 1 )
+

@@ -1,0 +1,59 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type spatial;
+render_mode cull_disabled;
+
+vec3 lerp(vec3 a, vec3 b, float f){
+	return a*f+b*(1.0-f);
+}
+
+uniform sampler2D noise;
+
+uniform float pi = 3.1415926535897932384626433832795;
+
+uniform float wavelength = 2.0;
+uniform int numWaves = 2;
+uniform float amplitude = 0.33;
+uniform float speed = 0.5;
+uniform vec2 direction = vec2(1.0, 1.0);
+
+
+float wave(int i, float x, float y, float t){
+	float frequency = 2.0 * pi / wavelength;
+	float phase = speed * frequency;
+	float theta = dot(direction+vec2(-float(i),float(i)), vec2(x+sin(y), y+sin(x)));
+	return amplitude * sin(theta * frequency + t * phase);
+}
+
+float height(vec2 p, float t){
+	float height = 0.0;
+    for (int i = 0; i < numWaves; i++) {
+        height += wave(i, p.x, p.y, t);
+    }
+    return height;
+}
+
+void fragment(){
+	ALBEDO = texture(noise, UV +0.007*(height(UV*50.0, TIME)) ).rgb * vec3(0.15,0.1,0.7);
+	NORMALMAP_DEPTH = height(UV*50.0, TIME);
+	//NORMALMAP_DEPTH = texture(noise, UV +0.007*(height(UV*50.0, TIME)) ).r;
+	ALPHA = 0.97;
+}"
+
+[sub_resource type="OpenSimplexNoise" id=2]
+
+[sub_resource type="NoiseTexture" id=3]
+seamless = true
+noise = SubResource( 2 )
+
+[resource]
+shader = SubResource( 1 )
+shader_param/pi = 3.14159
+shader_param/wavelength = 2.0
+shader_param/numWaves = 2
+shader_param/amplitude = 0.33
+shader_param/speed = 2.0
+shader_param/direction = Vector2( 1, 1 )
+shader_param/noise = SubResource( 3 )
+

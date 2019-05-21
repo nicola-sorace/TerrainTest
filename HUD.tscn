@@ -1,0 +1,408 @@
+[gd_scene load_steps=24 format=2]
+
+[ext_resource path="res://materials/Camera_shader.tres" type="Material" id=1]
+[ext_resource path="res://fonts/black_chancery.TTF" type="DynamicFontData" id=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Control
+
+const INVENTORY = preload(\"res://gui/Inventory.tscn\")
+const DRAG_VIEW = preload(\"res://gui/DragPreview.tscn\")
+
+onready var warning = get_node(\"Warning\")
+
+func show_inventory(obj):
+	var inv = INVENTORY.instance()
+	add_child(inv)
+	inv.load_inventory(obj)
+	inv.show()
+	return inv
+
+func show_warning(s):
+	warning.show_warning(s)"
+
+[sub_resource type="GradientTexture" id=2]
+
+[sub_resource type="GDScript" id=3]
+script/source = "extends Panel
+
+onready var health = get_node(\"Health\")
+onready var energy = get_node(\"Energy\")
+
+func _ready():
+	health.set_max(game.player.max_health)
+	energy.set_max(game.player.max_energy)
+
+func _process(delta):
+	health.set_value(game.player.health)
+	energy.set_value(game.player.energy)"
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0.176471, 0.545098, 0, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 0.2, 0.2, 0.2, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id=6]
+bg_color = Color( 0.592157, 0.466667, 0.0627451, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="InputEventAction" id=7]
+action = "inventory"
+
+[sub_resource type="ShortCut" id=8]
+shortcut = SubResource( 7 )
+
+[sub_resource type="GDScript" id=9]
+script/source = "extends Button
+
+func _ready():
+	connect(\"pressed\", game.player, \"open_inventory\", [true])
+
+"
+
+[sub_resource type="GDScript" id=10]
+script/source = "extends Panel
+
+const SPELL_BUT = preload(\"res://gui/SpellButton.tscn\")
+
+var N = 10
+
+var spells = []
+var buts = []
+var selected = null
+
+func _ready():
+	for i in range(N):
+		spells.append(null)
+		
+		var but = SPELL_BUT.instance()
+		but.init(i)
+		but.connect(\"pressed\", self, \"select\", [i])
+		add_child(but)
+		buts.append(but)
+	
+	set_spell(0, \"Melee\")
+	set_spell(1, \"Fireball\")
+	set_spell(2, \"Teleport\")
+
+func set_spell(n, title):
+	var spell = load(\"res://spells/\"+title+\".gd\").new()
+	spell.init(game.player)
+	spells[n] = spell
+	buts[n].set_spell(spell)
+
+func select(n):
+	if n==selected:
+		buts[n].set_pressed(false)
+		game.player.spell = null
+		selected = null
+		return
+	
+	for i in range(N):
+		var but = buts[i]
+		if i==n:
+			but.set_pressed(true)
+		else:
+			but.set_pressed(false)
+	game.player.spell = spells[n]
+	selected = n
+
+func _input(event):
+	if event is InputEventKey and event.is_pressed():
+		var s = event.get_scancode()
+		if s>=48 and s<=57:
+			var i = s-49
+			if i<0: i = 9
+			select(i)
+"
+
+[sub_resource type="StyleBoxFlat" id=11]
+bg_color = Color( 0.0941176, 0.447059, 0.756863, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+
+[sub_resource type="StyleBoxFlat" id=12]
+bg_color = Color( 0.2, 0.2, 0.2, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+
+[sub_resource type="GDScript" id=13]
+script/source = "extends ProgressBar
+
+onready var timer = game.player.spell_timer
+
+func _process(delta):
+	if not timer.is_stopped():
+		set_value(1 - timer.get_time_left()/timer.get_wait_time())
+		set_visible(true)
+	else: set_visible(false)
+"
+
+[sub_resource type="StyleBoxFlat" id=14]
+bg_color = Color( 0.2, 0.2, 0.2, 0.784314 )
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="GDScript" id=15]
+script/source = "extends Panel
+
+onready var title = get_node(\"Title\")
+onready var bar = get_node(\"Health\")
+
+var obj = null
+
+func _ready():
+	set_visible(false)
+
+func _process(delta):
+	if is_visible() and obj!=null: bar.set_value(obj.health)
+
+func activate(obj, p):
+	self.obj = obj
+	set_position(p - Vector2(get_size().x/2, get_size().y))
+	title.set_text(obj.title)
+	bar.set_max(obj.max_health)
+	bar.set_value(obj.health)
+	set_visible(true)
+
+func deactivate():
+	set_visible(false)"
+
+[sub_resource type="DynamicFont" id=16]
+size = 24
+font_data = ExtResource( 2 )
+
+[sub_resource type="StyleBoxFlat" id=17]
+bg_color = Color( 0.176471, 0.545098, 0, 1 )
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id=18]
+bg_color = Color( 0.2, 0.2, 0.2, 1 )
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id=19]
+bg_color = Color( 1, 0.894118, 0.341176, 0.639216 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+expand_margin_left = 10.0
+expand_margin_right = 10.0
+expand_margin_top = 5.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="DynamicFont" id=20]
+size = 24
+font_data = ExtResource( 2 )
+
+[sub_resource type="GDScript" id=21]
+script/source = "extends Label
+
+onready var timer = get_node(\"Timer\")
+
+func _ready():
+	timer.connect(\"timeout\", self, \"close\")
+	close()
+
+func show_warning(s):
+	set_text(s)
+	set_visible(true)
+	timer.start()
+
+func close():
+	set_visible(false)"
+
+[node name="HUD" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = SubResource( 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Shader" type="TextureRect" parent="."]
+material = ExtResource( 1 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = SubResource( 2 )
+expand = true
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="PlayerStatus" type="Panel" parent="."]
+editor/display_folded = true
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -600.0
+margin_top = -80.0
+margin_right = -355.0
+script = SubResource( 3 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Health" type="ProgressBar" parent="PlayerStatus"]
+anchor_right = 1.0
+anchor_bottom = 0.5
+margin_left = 10.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -5.0
+custom_styles/fg = SubResource( 4 )
+custom_styles/bg = SubResource( 5 )
+value = 50.0
+percent_visible = false
+
+[node name="Energy" type="ProgressBar" parent="PlayerStatus"]
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 5.0
+margin_right = -10.0
+margin_bottom = -10.0
+custom_styles/fg = SubResource( 6 )
+custom_styles/bg = SubResource( 5 )
+value = 50.0
+percent_visible = false
+
+[node name="Actions" type="Panel" parent="."]
+editor/display_folded = true
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = 355.0
+margin_top = -80.0
+margin_right = 600.0
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Bag_button" type="Button" parent="Actions"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -70.0
+margin_top = -70.0
+margin_right = -10.0
+margin_bottom = -10.0
+focus_mode = 0
+shortcut = SubResource( 8 )
+text = "bag"
+script = SubResource( 9 )
+
+[node name="Spellbar" type="Panel" parent="."]
+editor/display_folded = true
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -355.0
+margin_top = -80.0
+margin_right = 355.0
+script = SubResource( 10 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Castbar" type="ProgressBar" parent="Spellbar"]
+anchor_right = 1.0
+margin_left = -245.0
+margin_top = -10.0
+margin_right = 245.0
+margin_bottom = 1.0
+custom_styles/fg = SubResource( 11 )
+custom_styles/bg = SubResource( 12 )
+max_value = 1.0
+value = 0.5
+percent_visible = false
+script = SubResource( 13 )
+
+[node name="ActorTooltip" type="Panel" parent="."]
+editor/display_folded = true
+margin_left = 59.0195
+margin_top = 46.0373
+margin_right = 279.02
+margin_bottom = 101.037
+mouse_filter = 2
+custom_styles/panel = SubResource( 14 )
+script = SubResource( 15 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Title" type="Label" parent="ActorTooltip"]
+anchor_right = 1.0
+anchor_bottom = 0.5
+margin_bottom = 10.0
+custom_fonts/font = SubResource( 16 )
+text = "Firstname Lastname"
+align = 1
+valign = 1
+
+[node name="Health" type="ProgressBar" parent="ActorTooltip"]
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -10.0
+mouse_filter = 2
+custom_styles/fg = SubResource( 17 )
+custom_styles/bg = SubResource( 18 )
+value = 50.0
+percent_visible = false
+
+[node name="Warning" type="Label" parent="."]
+editor/display_folded = true
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -41.5
+margin_top = 350.0
+margin_right = 41.5
+margin_bottom = -500.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+custom_styles/normal = SubResource( 19 )
+custom_fonts/font = SubResource( 20 )
+custom_colors/font_color = Color( 0.133333, 0.133333, 0.133333, 1 )
+text = "Oh no!"
+align = 1
+valign = 1
+script = SubResource( 21 )
+
+[node name="Timer" type="Timer" parent="Warning"]
+wait_time = 2.0
+one_shot = true
+

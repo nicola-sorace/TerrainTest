@@ -1,0 +1,66 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://fonts/gorri_sans.ttf" type="DynamicFontData" id=1]
+
+[sub_resource type="DynamicFont" id=1]
+size = 32
+use_filter = true
+font_data = ExtResource( 1 )
+
+[sub_resource type="GDScript" id=2]
+script/source = "extends Label
+
+var v  # Label value, either a number or a string
+var p  # Initial position
+
+const C_BAD = Color(1,0,0)
+const C_GOOD = Color(0,1,0)
+const C_FAIL = Color(1,1,0)
+
+var t = Timer.new()
+
+func init(v, p):
+	self.v = v
+	self.p = p-get_size()/2
+	set_position(self.p)
+
+func _ready():
+	var color
+	if typeof(v) == TYPE_STRING:
+		set_text(v)
+		color = C_FAIL
+	else:
+		set_text(str(abs(v)))
+		if v>0: color = C_GOOD
+		else: color = C_BAD
+	
+	add_color_override(\"font_color\", color)
+	var shadow_color = color
+	shadow_color.a = 0.5
+	add_color_override(\"font_color_shadow\", shadow_color)
+	
+	t.set_wait_time(1)
+	t.set_one_shot(true)
+	add_child(t)
+	t.start()
+
+func _process(delta):
+	set_position(p+Vector2(0, -100*(t.wait_time-t.time_left)/t.wait_time ))
+	
+	if t.time_left <= 0: queue_free()
+"
+
+[node name="Label" type="Label"]
+margin_right = 127.0
+margin_bottom = 41.0
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 1, 0, 0, 1 )
+custom_colors/font_color_shadow = Color( 1, 0, 0, 0.219608 )
+custom_constants/shadow_offset_x = 1
+custom_constants/shadow_offset_y = 1
+custom_constants/shadow_as_outline = 0
+text = "Immune"
+align = 1
+valign = 1
+script = SubResource( 2 )
+

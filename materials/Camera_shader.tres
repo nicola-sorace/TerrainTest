@@ -1,0 +1,24 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform int shader = 0;
+
+uniform int S_NONE = 0;
+uniform int S_WATER = 1;
+
+void fragment(){
+	if(shader == S_NONE) COLOR = texture(SCREEN_TEXTURE, SCREEN_UV);
+	else if(shader == S_WATER){
+		COLOR = texture(SCREEN_TEXTURE, SCREEN_UV+sin(SCREEN_UV.x*50f + TIME/2f)/400f) * vec4(0.5f,0.5f,1f,1f);
+		//COLOR = texture(SCREEN_TEXTURE, SCREEN_UV) * vec4(0f,0.5f,0.8f, 1f);
+	}	
+}"
+
+[resource]
+shader = SubResource( 1 )
+shader_param/shader = 0
+shader_param/S_NONE = 0
+shader_param/S_WATER = 1
+
