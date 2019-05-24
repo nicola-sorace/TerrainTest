@@ -1,7 +1,7 @@
 [gd_scene load_steps=2 format=2]
 
 [sub_resource type="GDScript" id=1]
-script/source = "extends WindowDialog
+script/source = "extends Window
 
 const SLOT = preload(\"res://gui/ItemSlot.tscn\")
 const W = 4  # Number of slots per row
@@ -10,8 +10,12 @@ var obj = null
 var inventory = {}
 var inv_len = 0
 
+var slots = []
+
 func load_inventory(obj):
+	game.hud.play_sound(\"BagOpen\")
 	self.obj = obj
+	source = obj
 	inventory = obj.inventory
 	inv_len = obj.inv_len
 	
@@ -22,31 +26,25 @@ func load_inventory(obj):
 		var slot = SLOT.instance()
 		slot._ready()
 		slot.set_position(Vector2(10+70*(i-floor(i/W)*W), 10+70*floor(i/W)))
-		slot.set_item(inventory, i)
+		slot.set_item(obj, inventory, i)
 		add_child(slot)
+		slots.append(slot)
 	
 	set_size(Vector2(W*70+10, ceil(obj.inv_len/float(W))*70+10))
 	if obj != game.player:
 		set_position(get_viewport().get_mouse_position())
 	
-	get_close_button().connect(\"pressed\", self, \"close\")
+	obj.connect(\"inventory_changed\", self, \"update\")
 
-func _ready():
-	connect(\"focus_entered\", self, \"move_to_top\")
-
-func _process(delta):
-	if (game.player.get_translation()-obj.get_translation()).length() > game.MELEE_RANGE:
-		close()
-
-func move_to_top():
-	get_parent().move_child(self, get_parent().get_child_count())
+func update():
+	for slot in slots:
+		slot.update_item()
 
 func close():
 	obj.inv_view = null
-	queue_free()"
+	.close()"
 
 [node name="Inventory" type="WindowDialog"]
-visible = true
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0

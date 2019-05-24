@@ -7,7 +7,6 @@ onready var image = get_node(\"Image\")
 onready var num_label = get_node(\"Number\")
 
 func init(n):
-	_ready()
 	set_position(Vector2(10+70*n, 10))
 	num_label.set_text(str(n+1)[-1])  # Todo shortcuts
 

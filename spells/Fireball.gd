@@ -1,6 +1,6 @@
-extends "../scripts/Spell.gd"
+extends Spell
 
-func _ready():
+func set_stats():
 	title = "Fireball"
 	icon = load("res://icons/fireball.png")
 	energy = 15
@@ -9,7 +9,6 @@ func _ready():
 	dist = 50
 	speed = 100
 
-func start_cast():
+func action_start():
 	caster.set_anim("Strike")
 	projectile_launch()
-	.start_cast()

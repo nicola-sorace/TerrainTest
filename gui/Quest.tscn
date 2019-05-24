@@ -1,0 +1,213 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://fonts/black_chancery.TTF" type="DynamicFontData" id=1]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Window
+
+onready var title = get_node(\"Title\")
+onready var desc = get_node(\"Description\")
+onready var tasks = get_node(\"Tasks\")
+onready var rewards = get_node(\"Rewards\")
+onready var accept_b = get_node(\"Accept\")
+onready var ignore_b = get_node(\"Ignore\")
+
+var quest = null
+
+func open_conv(quest):
+	
+	for q in game.player.done_quests:
+		if quest.is_same_quest(q):
+			game.hud.show_warning(\"You've already completed this quest.\")
+			queue_free()
+			return
+	
+	var accepted = false
+	for q in game.player.quests:
+		if quest.is_same_quest(q):
+			quest = q
+			accepted = true
+			break
+	if accepted:
+		accept_b.set_text(\"Complete\")
+		accept_b.connect(\"pressed\", self, \"complete\")
+		ignore_b.set_text(\"Abbandon\")
+		ignore_b.connect(\"pressed\", self, \"abbandon\")
+	else:
+		accept_b.connect(\"pressed\", self, \"accept\")
+		ignore_b.connect(\"pressed\", self, \"close\")
+	
+	game.hud.play_sound(\"BagOpen\")
+	self.quest = quest
+	source = quest.start
+	
+	title.set_text(quest.title)
+	desc.set_bbcode(quest.desc)
+	
+	tasks.set_bbcode(\"\")
+	for t in quest.tasks:
+		tasks.append_bbcode(quest.get_task_bbcode(t))
+	
+	rewards.set_bbcode(\"\")
+	for r in quest.reward_misc:
+		rewards.append_bbcode(\"- \"+r+\"\\n\")
+	for r in quest.reward_items:
+		if r[2] != 1:
+			rewards.append_bbcode(\"- \"+str(r[2])+\" \"+r[1]+\"\\n\")
+		else:
+			rewards.append_bbcode(\"- \"+r[1]+\"\\n\")
+	
+	set_visible(true)
+
+func accept():
+	game.player.add_quest(quest)
+	close()
+func abbandon(): #TODO confirm dialog
+	game.player.remove_quest(quest)
+	close()
+func complete():
+	if quest.try_complete(game.player):
+		close()"
+
+[sub_resource type="DynamicFont" id=2]
+size = 32
+font_data = ExtResource( 1 )
+
+[sub_resource type="DynamicFont" id=3]
+size = 20
+font_data = ExtResource( 1 )
+
+[node name="Quest" type="WindowDialog"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -300.0
+margin_top = -200.0
+margin_right = 300.0
+margin_bottom = 200.0
+focus_mode = 2
+window_title = "Quest"
+script = SubResource( 1 )
+
+[node name="Title" type="Label" parent="."]
+anchor_right = 0.5
+margin_left = 20.0
+margin_top = 20.0
+margin_right = -10.0
+margin_bottom = 60.0
+rect_pivot_offset = Vector2( 124.105, 25.7895 )
+custom_fonts/font = SubResource( 2 )
+text = "Good Quest"
+valign = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="TasksLabel" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 1.0
+margin_left = 10.0
+margin_top = 40.0
+margin_right = -20.0
+margin_bottom = 70.0
+rect_pivot_offset = Vector2( 124.105, 25.7895 )
+custom_fonts/font = SubResource( 3 )
+text = "Tasks:"
+valign = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="RewardsLabel" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 1.0
+margin_left = 10.0
+margin_top = 192.0
+margin_right = -20.0
+margin_bottom = 218.0
+rect_pivot_offset = Vector2( 124.105, 25.7895 )
+custom_fonts/font = SubResource( 3 )
+text = "Rewards:"
+valign = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Description" type="RichTextLabel" parent="."]
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = 20.0
+margin_top = 80.0
+margin_right = -10.0
+margin_bottom = -20.0
+mouse_filter = 1
+bbcode_enabled = true
+bbcode_text = "Lorem ipsum"
+text = "Lorem ipsum"
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Tasks" type="RichTextLabel" parent="."]
+anchor_left = 0.5
+anchor_right = 1.0
+margin_left = 10.0
+margin_top = 70.0
+margin_right = -20.0
+margin_bottom = 170.0
+mouse_filter = 1
+bbcode_enabled = true
+bbcode_text = "-Lorem ipsum
+-Lorem ipsum"
+text = "-Lorem ipsum
+-Lorem ipsum"
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Rewards" type="RichTextLabel" parent="."]
+anchor_left = 0.5
+anchor_right = 1.0
+margin_left = 10.0
+margin_top = 218.0
+margin_right = -20.0
+margin_bottom = 318.0
+mouse_filter = 1
+bbcode_enabled = true
+bbcode_text = "-Lorem ipsum
+-Lorem ipsum"
+text = "-Lorem ipsum
+-Lorem ipsum"
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Accept" type="Button" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 150.0
+margin_top = -60.0
+margin_right = -20.0
+margin_bottom = -20.0
+text = "Accept"
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Ignore" type="Button" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = -60.8847
+margin_right = -160.0
+margin_bottom = -20.0
+text = "Ignore"
+__meta__ = {
+"_edit_lock_": true
+}
+

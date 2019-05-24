@@ -8,9 +8,44 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "Entity",
+"class": "Actor",
+"language": "GDScript",
+"path": "res://scripts/Actor.gd"
+}, {
+"base": "KinematicBody",
+"class": "Entity",
+"language": "GDScript",
+"path": "res://scripts/Entity.gd"
+}, {
+"base": "Node",
+"class": "Item",
+"language": "GDScript",
+"path": "res://scripts/Item.gd"
+}, {
+"base": "Actor",
+"class": "Mob",
+"language": "GDScript",
+"path": "res://scripts/Mob.gd"
+}, {
+"base": "Node",
+"class": "Spell",
+"language": "GDScript",
+"path": "res://scripts/Spell.gd"
+}, {
+"base": "WindowDialog",
+"class": "Window",
+"language": "GDScript",
+"path": "res://scripts/Window.gd"
+} ]
 _global_script_class_icons={
-
+"Actor": "",
+"Entity": "",
+"Item": "",
+"Mob": "",
+"Spell": "",
+"Window": ""
 }
 
 [application]
@@ -22,6 +57,14 @@ config/icon="res://icon.png"
 [autoload]
 
 game="*res://scripts/Game.gd"
+
+[debug]
+
+gdscript/warnings/unused_variable=false
+gdscript/warnings/unused_class_variable=false
+gdscript/warnings/unused_argument=false
+gdscript/warnings/unused_signal=false
+gdscript/warnings/return_value_discarded=false
 
 [input]
 

@@ -1,6 +1,6 @@
-extends "../scripts/Spell.gd"
+extends Spell
 
-func _ready():
+func set_stats():
 	title = "Meele Attack"
 	icon = load("res://icons/sword.png")
 	energy = 5
@@ -8,7 +8,6 @@ func _ready():
 	hp = 10
 	can_move = true
 
-func start_cast():
+func action_start():
 	caster.set_anim("Strike")
 	damage(c.collider, hp, game.MELEE_RANGE)
-	.start_cast()

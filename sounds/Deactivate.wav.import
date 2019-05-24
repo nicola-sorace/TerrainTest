@@ -1,0 +1,21 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/Deactivate.wav-37c1990375755fc5817b4676f3f7d0fe.sample"
+
+[deps]
+
+source_file="res://sounds/Deactivate.wav"
+dest_files=[ "res://.import/Deactivate.wav-37c1990375755fc5817b4676f3f7d0fe.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=true
+edit/normalize=true
+edit/loop=false
+compress/mode=0

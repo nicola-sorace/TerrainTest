@@ -3,7 +3,8 @@ Describes creature behaviour, i.e. things that spawn, roam around and can be kil
 Includes basic MOB AI such as responding to attacks.
 """
 
-extends "Actor.gd"
+extends Actor
+class_name Mob
 func is_class(type): return type=="Mob" or .is_class(type)
 
 var spawn_area = null
@@ -11,10 +12,7 @@ var spawn_area = null
 var MELEE = preload("res://spells/Melee.gd")
 
 # Temperment constants:
-const T_AGRESSIVE = 0  # Attacks on sight
-const T_COWARD = 1  # Flees on sight
-const T_PASSIVE_AGRESSIVE = 2  # Attacks when attacked
-const T_PASSIVE_COWARD = 3  # Flees when attacked
+enum{T_AGRESSIVE, T_COWARD, T_PASSIVE_AGRESSIVE, T_PASSIVE_COWARD}
 
 const temperment = T_PASSIVE_AGRESSIVE
 
@@ -24,8 +22,8 @@ func _ready():
 	spell.hp *= 0.5
 	spell.cast_time *= 2
 	set_state(S_ROAM)
-	inventory[0] = game.Item.create_item("Flesh")
-	inventory[1] = game.Item.create_item("Eyeball")
+	game.Item.give_new_item(self, "Flesh")
+	game.Item.give_new_item(self, "Eyeball")
 
 func damage(hp, attacker = null):
 	.damage(hp, attacker)
@@ -42,12 +40,14 @@ func set_state(s):
 
 func timeout():
 	.timeout()
-	if state == S_DEAD:
-		spawn_area.mobs.erase(self)
-	elif state == S_ROAM:
-		target_coords = spawn_area.get_point()
-		timer.set_wait_time(rand_range(1, 10))
-		timer.start()
-	elif state == S_ATTACK:
-		if (get_translation()-spawn_area.get_translation()).length() > spawn_area.radius:
-			set_state(S_ROAM)
+	match state:
+		S_DEAD:
+			spawn_area.mobs.erase(self)
+		S_ROAM:
+			target_coords = spawn_area.get_point()
+			timer.set_wait_time(rand_range(1, 10))
+			timer.start()
+		S_ATTACK:
+			if (get_translation()-spawn_area.get_translation()).length() > spawn_area.radius:
+				disconnect("killed", target, "confirm_kill")
+				set_state(S_ROAM)

@@ -34,12 +34,27 @@ float height(vec2 p, float t){
     return height;
 }
 
+vec3 height_with_noise(vec2 p, float t){
+	return texture(noise, sin(t/10f)*0.1+p + 0.007*(height(p*50.0, t)) ).rgb;
+}
+
 void fragment(){
-	ALBEDO = texture(noise, UV +0.007*(height(UV*50.0, TIME)) ).rgb * vec3(0.15,0.1,0.7);
-	NORMALMAP_DEPTH = height(UV*50.0, TIME);
-	//NORMALMAP_DEPTH = texture(noise, UV +0.007*(height(UV*50.0, TIME)) ).r;
+	//ALBEDO = texture(noise, UV +0.007*(height(UV*50.0, TIME)) ).rgb * vec3(0.15,0.1,0.7);
+	ALBEDO = height_with_noise(UV,TIME) * vec3(0.15,0.1,0.7);
+	//NORMALMAP_DEPTH = height(UV*50.0, TIME);
+	NORMALMAP_DEPTH = height_with_noise(UV,TIME).r;
+	
 	ALPHA = 0.97;
-}"
+	
+	//NORMALMAP_DEPTH = texture(noise, UV +0.007*(height(UV*50.0, TIME)) ).r;
+}
+
+void vertex(){
+	//VERTEX.y = height_with_noise(UV,TIME).r;
+	VERTEX.y = sin(TIME/2f-1.3874)*0.04;
+}
+
+"
 
 [sub_resource type="OpenSimplexNoise" id=2]
 

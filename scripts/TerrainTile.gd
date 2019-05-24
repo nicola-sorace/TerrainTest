@@ -8,81 +8,89 @@ This class also handles LOD based on distance from player.
 extends StaticBody
 
 var TERRAIN_MATERIAL = preload("res://materials/Terrain2.tres")
-var WATER = preload("res://objects/Water.tscn")
 
-var player
-
+var x
+var y
 var img
 var rect
-var res
 
 var col_shape
 var mesh_inst
+var water
 
-func _init(player, img, rect):
-	self.player = player
+var res = null
+
+"""
+func _init(x, y, img, rect):
+	self.x = x
+	self.y = y
 	self.img = img
 	self.rect = rect
 	
 	col_shape = CollisionShape.new()
 	mesh_inst = MeshInstance.new()
-	add_child(col_shape)
-	add_child(mesh_inst)
-	set_translation(Vector3(rect.position.x, 0, rect.position.y))
+	#add_child(col_shape)
+	#add_child(mesh_inst)
+	call_deferred("add_child", col_shape)
+	call_deferred("add_child", mesh_inst)
 	
 	var water = WATER.instance()
 	water.set_translation(Vector3(rect.size.x/2, game.WATER_LEVEL, rect.size.y/2))
-	add_child(water)
+	#add_child(water)
+	call_deferred("add_child", water)
 	
-	update_LOD()
+	call_deferred("set_translation", Vector3(rect.position.x, 0, rect.position.y))
+"""
 
-func _physics_process(delta):
-	update_LOD()
-
-func update_LOD():
-	var d = (player.get_translation() - (get_translation()+Vector3(rect.size.x/2,0,rect.size.y/2))).length()
+func init(x, y, img, rect):
+	self.x = x
+	self.y = y
+	self.img = img
+	self.rect = rect
 	
-	var res
-	if d<64: res = 1
-	elif d<128: res = 2
-	elif d<256: res = 8
-	else: res = 16
+	col_shape = get_node("CollisionShape")
+	mesh_inst = get_node("MeshInstance")
+	water = get_node("Water")
 	
-	if res != self.res: set_res(res)
+	water.set_translation(Vector3(rect.size.x/2, game.WATER_LEVEL, rect.size.y/2))
+	
+	call_deferred("set_translation", Vector3(rect.position.x, 0, rect.position.y))
 
 func set_res(res):
+	if res == self.res:
+		return
 	self.res = res
-	var rect = self.rect
-	rect.size += Vector2(res,res)
-	var img = self.img.get_rect(rect)
-	img.lock()
 	
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.add_smooth_group(true)
 	
-	for y in range(0, img.get_height()-res, res):
-		for x in range(0, img.get_width()-res, res):
-			add_vertex(st, img, x, y)
-			add_vertex(st, img, x+res, y)
-			add_vertex(st, img, x, y+res)
-			add_vertex(st, img, x+res, y+res)
-			add_vertex(st, img, x, y+res)
-			add_vertex(st, img, x+res, y)
+	for y in range(0, rect.size.y, res):
+		for x in range(0, rect.size.x, res):
+			add_vertex(st, x, y)
+			add_vertex(st, x+res, y)
+			add_vertex(st, x, y+res)
+			add_vertex(st, x+res, y+res)
+			add_vertex(st, x, y+res)
+			add_vertex(st, x+res, y)
 	
 	st.set_material(TERRAIN_MATERIAL)
 	st.generate_normals()
+	st.index()
 	
-	var mesh = st.commit()
-	
-	mesh_inst.set_mesh(mesh)
+	call_deferred("load_st", st)  # Changing mesh is not thread safe, needs deferred function
 	
 	#if res==1: col_shape.set_shape(mesh.create_trimesh_shape())  # Only collide closest tiles
 	#else: col_shape.set_shape(null)
-	
+
+func load_st(st):
+	var mesh = st.commit()
+	mesh_inst.set_mesh(mesh)
 	col_shape.set_shape(mesh.create_trimesh_shape())
 
-func add_vertex(st, img, x, y):
-	var v = img.get_pixel(x,y).r
-	st.add_uv(rect.position + Vector2(x,y))
+func add_vertex(st, x, y):
+	var g_x = x+rect.position.x  # 'g' for global
+	var g_y = y+rect.position.y
+	var v = img.get_pixel(g_x,g_y).r
+	st.add_uv(Vector2(g_x,g_y))
 	st.add_vertex(Vector3(float(x), v*64-32, float(y)))

@@ -4,9 +4,9 @@
 
 [sub_resource type="PlaneMesh" id=1]
 material = ExtResource( 1 )
-size = Vector2( 32, 32 )
+size = Vector2( 64, 64 )
 
-[node name="MeshInstance" type="MeshInstance"]
+[node name="Water" type="MeshInstance"]
 mesh = SubResource( 1 )
 material/0 = null
 

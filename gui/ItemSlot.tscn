@@ -13,6 +13,7 @@ script/source = "extends Panel
 func is_class(type): return type==\"ItemSlot\" or .is_class(type)
 
 var item = null
+var entity = null  # Entity that owns the inventory
 var inventory = {}
 var inv_i = 0
 
@@ -20,6 +21,7 @@ onready var image = get_node(\"Image\")
 onready var count = get_node(\"Count\")
 
 func get_drag_data(position):
+	game.hud.play_sound(\"Lift\")
 	if item != null:
 		var preview = game.hud.DRAG_VIEW.instance()
 		preview.activate(item.icon, item.count)
@@ -31,6 +33,7 @@ func can_drop_data(position, data):
 	return data.is_class(\"ItemSlot\") and data != self
 
 func drop_data(position, slot):
+	game.hud.play_sound(\"Drop\")
 	if item == null:
 		inventory[inv_i] = slot.inventory[slot.inv_i]
 		slot.inventory[slot.inv_i] = null
@@ -42,8 +45,8 @@ func drop_data(position, slot):
 			var tmp = inventory[inv_i]
 			inventory[inv_i] = slot.inventory[slot.inv_i]
 			slot.inventory[slot.inv_i] = tmp
-	update_item()
-	slot.update_item()
+	entity.emit_signal(\"inventory_changed\")
+	slot.entity.emit_signal(\"inventory_changed\")
 
 func update_item():
 	if inventory.has(inv_i) and inventory[inv_i] != null:
@@ -56,13 +59,15 @@ func update_item():
 		else:
 			count.set_visible(false)
 	else:
-		if inventory.has(inv_i): inventory.erase(inv_i)
 		item = null
+		if inventory.has(inv_i):
+			inventory.erase(inv_i)
 		image.set_texture(null)
 		count.set_visible(false)
 		set_tooltip(\"\")
 
-func set_item(inventory, inv_i):
+func set_item(entity, inventory, inv_i):
+	self.entity = entity
 	self.inventory = inventory
 	self.inv_i = inv_i
 	update_item()"

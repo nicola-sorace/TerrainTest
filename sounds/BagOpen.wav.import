@@ -1,0 +1,21 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/BagOpen.wav-06368688966b5bbe83967594dd027aeb.sample"
+
+[deps]
+
+source_file="res://sounds/BagOpen.wav"
+dest_files=[ "res://.import/BagOpen.wav-06368688966b5bbe83967594dd027aeb.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=true
+edit/normalize=true
+edit/loop=false
+compress/mode=0

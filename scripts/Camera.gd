@@ -13,6 +13,7 @@ onready var actor_tooltip = game.hud.get_node("ActorTooltip")
 const C_NORMAL = preload("res://cursors/normal.png")
 const C_OPEN_F = preload("res://cursors/open_full.png")
 const C_OPEN_E = preload("res://cursors/open_empty.png")
+const C_TALK = preload("res://cursors/talk.png")
 
 var dist = 10  # Camera distance
 var dir = deg2rad(180)  # y-rotation
@@ -23,6 +24,8 @@ var rotating_play = false
 var casting = false
 var last_mouse = Vector2(0,0)
 var mouse_hit = {}  # Stores latest mouse-ray collision info
+
+var underwater = false
 
 func _ready():
 	set_cursor(C_NORMAL)
@@ -41,10 +44,25 @@ func _process(delta):
 	set_rotation(Vector3(ang, dir, 0)-game.player.get_rotation())
 	translate_object_local(Vector3(0, 0, dist))
 	
+	if not get_viewport().is_input_handled():
+		update_mouse_hit()
+	elif not mouse_hit.empty():  #i.e. if input just became handled
+		mouse_hit = {}
+		set_cursor(C_NORMAL)
+		actor_tooltip.deactivate()
+	
 	if get_global_transform().origin.y <= game.WATER_LEVEL:
-		shader.set_shader_param("shader", 1)
+		if not underwater:
+			shader.set_shader_param("shader", 1)
+			AudioServer.set_bus_effect_enabled(0,0,true)
+			AudioServer.set_bus_effect_enabled(0,0,true)
+			underwater = true
 	else:
-		shader.set_shader_param("shader", 0)
+		if underwater:
+			shader.set_shader_param("shader", 0)
+			AudioServer.set_bus_effect_enabled(0,0,false)
+			AudioServer.set_bus_effect_enabled(0,0,false)
+			underwater = false
 
 func update_mouse_hit():
 	var mouse = get_viewport().get_mouse_position()
@@ -56,12 +74,14 @@ func update_mouse_hit():
 		var obj = mouse_hit.collider
 		
 		if obj.is_class("Actor"):
-			actor_tooltip.activate(obj, unproject_position(obj.get_translation()+Vector3(0,2.5,0)))
+			actor_tooltip.activate(obj)
 		else: actor_tooltip.deactivate()
 		
 		if obj.action == game.Entity.A_OPEN:
 			if obj.inventory.empty(): set_cursor(C_OPEN_E)
 			else: set_cursor(C_OPEN_F)
+		elif obj.action == game.Entity.A_TALK:
+			set_cursor(C_TALK)
 		
 	else:
 		set_cursor(C_NORMAL)
@@ -86,15 +106,17 @@ func _unhandled_input(event):
 			if not event.pressed:
 				if not rotating_play and not mouse_hit.empty():
 					var obj = mouse_hit.collider
-					if obj != null and obj.is_class("Entity") and (obj.get_translation()-game.player.get_translation()).length() <= game.MELEE_RANGE:
-						obj.use()
+					if obj != null and obj.is_class("Entity"):
+						if (obj.get_translation()-game.player.get_translation()).length() <= game.MELEE_RANGE:
+							obj.use()
+						elif obj.action != obj.A_NONE:
+							game.hud.show_warning("That is too far away.")
 				rotating_play = false
 				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		
 		dist += float(event.button_index == BUTTON_WHEEL_DOWN)-float(event.button_index == BUTTON_WHEEL_UP)
 	
 	elif event is InputEventMouseMotion:
-		update_mouse_hit()
 		if casting and not mouse_hit.empty():
 			game.player.casting(mouse_hit)
 		if Input.is_mouse_button_pressed(BUTTON_RIGHT) and (last_mouse-get_viewport().get_mouse_position()).length()>20:

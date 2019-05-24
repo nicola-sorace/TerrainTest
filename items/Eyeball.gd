@@ -1,4 +1,5 @@
-extends "../scripts/Item.gd"
+extends Item
+func is_class(type): return type=="Eyeball" or .is_class(type)
 
 func _init():
 	title = "Eyeball"

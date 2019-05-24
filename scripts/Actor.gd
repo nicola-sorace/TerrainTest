@@ -5,7 +5,8 @@ Simple states and targets can be set (attack target, move to point etc).
 No AI is included (actor stays still by default).
 """
 
-extends "Entity.gd"
+extends Entity
+class_name Actor
 func is_class(type): return type=="Actor" or .is_class(type)
 
 const DECAY_TIME = 60
@@ -36,13 +37,11 @@ var target_coords = null  # Vector3
 var target = null  # Actor
 
 # State constants:
-const S_NONE = 0
-const S_ROAM = 1
-const S_ATTACK = 2
-const S_FLEE = 3
-const S_DEAD = 4
+enum {S_NONE, S_ROAM, S_ATTACK, S_FLEE, S_DEAD}
 
 var state = S_NONE
+
+signal killed
 
 func point_at(c):  # Takes ray collision dictionary
 	point_in(c.position-get_translation())
@@ -71,17 +70,19 @@ func start_attack(obj):
 func set_state(s):
 	timer.stop()
 	state = s
-	if s == S_DEAD:
-		set_scale(Vector3(1,0.5,1))
-		stop_cast()
-		spell = null
-		action = A_OPEN
-		if DECAY_TIME > 0:
-			timer.set_wait_time(DECAY_TIME)
+	match s:
+		S_DEAD:
+			set_scale(Vector3(1,0.5,1))
+			stop_cast()
+			spell = null
+			action = A_OPEN
+			if DECAY_TIME > 0:
+				timer.set_wait_time(DECAY_TIME)
+				timer.start()
+			emit_signal("killed")
+		S_ATTACK:
+			timer.set_wait_time(10)
 			timer.start()
-	elif s == S_ATTACK:
-		timer.set_wait_time(10)
-		timer.start()
 
 func timeout():
 	if state == S_DEAD:
@@ -106,12 +107,17 @@ func stop_cast():
 	if spell!=null: spell.stop_try_casting()
 
 func damage(hp, attacker = null):
+	if attacker != null:
+		connect("killed", attacker, "confirm_kill", [self])
 	if state != S_DEAD:
 		health -= hp
 		var l = game.LABEL.instance()
 		l.init(-hp, game.cam.unproject_position(get_translation()+Vector3(0,1,0)))
 		game.hud.add_child(l)
 		if health <= 0: set_state(S_DEAD)
+
+func confirm_kill(actor):
+	pass
 
 func _ready():
 	add_child(timer)
@@ -159,8 +165,9 @@ func _physics_process(delta):
 		deg2rad(50)  # Max slope
 	)
 	
-	if spell != null and dir.length() > 0:
-		spell.caster_moved()
+	if spell != null:
+		if dir.length() > 0: spell.caster_moved()
+		if spell.casting: spell.casting(delta)
 	
 	#TODO new system:
 	if anim != null:
