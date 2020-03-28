@@ -44,7 +44,19 @@ void fragment(){
 	//NORMALMAP_DEPTH = height(UV*50.0, TIME);
 	NORMALMAP_DEPTH = height_with_noise(UV,TIME).r;
 	
-	ALPHA = 0.97;
+	//ALPHA = 0.97
+	float depth = textureLod(DEPTH_TEXTURE,SCREEN_UV,0.0).r;
+	vec4 upos = INV_PROJECTION_MATRIX * vec4(SCREEN_UV*2.0-1.0,depth*2.0-1.0,1.0);
+    vec3 pix_pos = upos.xyz/upos.w;
+	//float refraction = pix_pos.y > 0.0 ? 0.0:0.5 ;
+	float refraction = pix_pos.y;
+	//if( refraction < 0.0 ) refraction = 0.0;
+	
+	float blur = 3.0;
+	float alpha = 0.7;
+	
+	//vec3 ref_normal = normalize(mix(NORMAL, TANGENT*NORMALMAP.x + BINORMAL*NORMALMAP.y + NORMAL*NORMALMAP.z, NORMALMAP_DEPTH));
+	EMISSION = textureLod(SCREEN_TEXTURE, SCREEN_UV, blur * height_with_noise(UV,TIME).r).rgb * (1.0-alpha);
 	
 	//NORMALMAP_DEPTH = texture(noise, UV +0.007*(height(UV*50.0, TIME)) ).r;
 }

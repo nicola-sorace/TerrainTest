@@ -22,6 +22,7 @@ onready var sun = get_node("/root/root/Sun")
 var time = 0.25
 
 var MOBILE = false
+var map_name = "Test"
 
 func _ready():
 	randomize()
@@ -30,4 +31,4 @@ func _ready():
 func set_time(time):
 	self.time = time
 	sky.set_sun_latitude(180*time)
-	sun.set_rotation(Vector3(deg2rad(180+180*time),0,0))
+	sun.set_rotation(Vector3(deg2rad(180+180*time),-90,0))

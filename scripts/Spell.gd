@@ -45,6 +45,11 @@ var caster
 var c = {}  # Ray collision dictionary
 var casting = false
 
+signal start_try_casting
+signal start_cast
+signal stop_cast
+signal stop_try_casting
+
 # Overloadable methods:
 func set_stats():  # Called on init
 	pass
@@ -80,6 +85,7 @@ func start_try_casting():
 		caster.spell_timer.start()
 	else:
 		error(E_ENERGY)
+	emit_signal("start_try_casting")
 
 func stop_try_casting():
 	action_stop_always()
@@ -87,6 +93,7 @@ func stop_try_casting():
 	caster.spell_timer.disconnect("timeout", self, "start_cast")
 	caster.spell_timer.disconnect("timeout", self, "stop_cast")
 	casting = false
+	emit_signal("stop_try_casting")
 
 func start_cast():
 	caster.energy -= energy
@@ -105,7 +112,7 @@ func casting(delta):
 	var en = dur_energy*delta
 	if caster.energy >= en:
 		caster.energy -= en
-		action_start()
+		action_dur(delta)
 	else:
 		error(E_ENERGY)
 		stop_try_casting()
@@ -118,7 +125,7 @@ func stop_cast():
 # Deal direct damage to target
 func damage(obj, hp=self.hp, dist = self.dist):
 	if obj.is_class("Actor"):
-		if dist != 0 and (caster.get_translation()-obj.get_translation()).length() > dist:
+		if dist != 0 and (caster.translation-obj.translation).length() > dist:
 			return
 		obj.damage(hp, caster)
 
@@ -126,7 +133,7 @@ func damage(obj, hp=self.hp, dist = self.dist):
 func projectile_launch(hp = self.hp, dist = self.dist):
 	var p = PROJECTILE.instance()
 	caster.get_parent().add_child(p)
-	var cast_source = Vector3(0,1.5,0)+caster.get_translation()
+	var cast_source = Vector3(0,1.5,0)+caster.translation
 	p.init(self, cast_source, speed*(c.position-cast_source).normalized(), dist)
 func projectile_hit(obj, pos):
 	damage(obj)

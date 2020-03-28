@@ -14,7 +14,8 @@ export(String) var title = "Unknown"
 enum{A_NONE, A_GENERIC, A_TALK, A_OPEN}
 
 var action = A_NONE
-var inventory = {}  # Index
+
+var inventory = {}  # {Index:Item}
 var inv_len = 8  # Max. inventory size
 var inv_view = null  # Stores inventory popup if open
 

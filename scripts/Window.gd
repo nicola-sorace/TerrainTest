@@ -15,7 +15,7 @@ func _ready():
 
 func _process(delta):
 	if source != null:
-		if (game.player.get_translation()-source.get_translation()).length() > game.MELEE_RANGE:
+		if (game.player.translation-source.translation).length() > game.MELEE_RANGE:
 			close()
 
 func close():
