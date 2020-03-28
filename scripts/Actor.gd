@@ -31,10 +31,13 @@ var v = Vector3(0,0,0)
 var underwater = false
 var flying = false
 var can_fly = false
+var zombie = false  # True if under control (e.g. is mount), disables all logic and movement
 var spell = null  # Active spell (ready to cast)
 
 var target_coords = null  # Vector3
 var target = null  # Actor
+
+var mount = null  # Mob
 
 # State constants:
 enum {S_NONE, S_ROAM, S_ATTACK, S_FLEE, S_DEAD}
@@ -44,15 +47,15 @@ var state = S_NONE
 signal killed
 
 func point_at(c):  # Takes ray collision dictionary
-	point_in(c.position-get_translation())
+	point_in(c.position-translation)
 func point_in(dir):
 	set_rotation(Vector3(0, -(Vector2(dir.x, dir.z).angle()+PI/2), 0))
 
 func move():  # Returns movement direction vector
 	if state == S_ATTACK:
-		target_coords = target.get_translation()
+		target_coords = target.translation
 	if target_coords != null:
-		var d = target_coords - get_translation()
+		var d = target_coords - translation
 		if not (underwater or can_fly): d.y = 0
 		if d.length() > game.MELEE_RANGE*0.7:
 			point_in(d)
@@ -62,7 +65,7 @@ func move():  # Returns movement direction vector
 func start_attack(obj):
 	if obj != target:
 		target = obj
-		start_cast({'collider':obj, 'position':obj.get_translation()})
+		start_cast({'collider':obj, 'position':obj.translation})
 		set_state(S_ATTACK)
 	elif state == S_ATTACK:
 		timer.start()
@@ -119,6 +122,17 @@ func damage(hp, attacker = null):
 func confirm_kill(actor):
 	pass
 
+func set_mount(MOUNT):
+	mount = MOUNT.instance()
+	mount.set_collision_layer(0)
+	mount.set_collision_mask(0)
+	mount.zombie = true
+	add_child(mount)
+
+func unset_mount():
+	remove_child(mount)
+	mount.queue_free()
+
 func _ready():
 	add_child(timer)
 	spell_timer.set_one_shot(true)
@@ -127,7 +141,7 @@ func _ready():
 
 func _physics_process(delta):
 	
-	if state == S_DEAD: return
+	if state == S_DEAD or zombie: return
 	
 	health += min(max_health-health, health_regen*delta)
 	energy += min(max_energy-energy, energy_regen*delta)
@@ -151,6 +165,7 @@ func _physics_process(delta):
 				set_anim("Jump")
 				dir.y=0
 				if can_fly: flying = true
+				if spell != null: spell.caster_moved()
 			else: v.y = -5
 			v += dir * speed
 			

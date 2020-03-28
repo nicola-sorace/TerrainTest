@@ -7,8 +7,6 @@ This class also handles LOD based on distance from player.
 
 extends StaticBody
 
-var TERRAIN_MATERIAL = preload("res://materials/Terrain2.tres")
-
 var x
 var y
 var img
@@ -19,6 +17,8 @@ var mesh_inst
 var water
 
 var res = null
+
+var terrain_material
 
 """
 func _init(x, y, img, rect):
@@ -42,11 +42,12 @@ func _init(x, y, img, rect):
 	call_deferred("set_translation", Vector3(rect.position.x, 0, rect.position.y))
 """
 
-func init(x, y, img, rect):
+func init(x, y, img, rect, material):
 	self.x = x
 	self.y = y
 	self.img = img
 	self.rect = rect
+	self.terrain_material = material
 	
 	col_shape = get_node("CollisionShape")
 	mesh_inst = get_node("MeshInstance")
@@ -56,8 +57,8 @@ func init(x, y, img, rect):
 	
 	call_deferred("set_translation", Vector3(rect.position.x, 0, rect.position.y))
 
-func set_res(res):
-	if res == self.res:
+func set_res(res, force_refresh=false):
+	if res == self.res and not force_refresh:
 		return
 	self.res = res
 	
@@ -74,7 +75,7 @@ func set_res(res):
 			add_vertex(st, x, y+res)
 			add_vertex(st, x+res, y)
 	
-	st.set_material(TERRAIN_MATERIAL)
+	st.set_material(terrain_material)
 	st.generate_normals()
 	st.index()
 	

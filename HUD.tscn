@@ -1,9 +1,12 @@
-[gd_scene load_steps=28 format=2]
+[gd_scene load_steps=32 format=2]
 
 [ext_resource path="res://materials/Camera_shader.tres" type="Material" id=1]
 [ext_resource path="res://gui/QuestGradient.tres" type="StyleBox" id=2]
 [ext_resource path="res://fonts/black_chancery.TTF" type="DynamicFontData" id=3]
 [ext_resource path="res://scripts/QuestList.gd" type="Script" id=4]
+[ext_resource path="res://gui/MinimapMaterial.tres" type="Material" id=5]
+[ext_resource path="res://gui/minimap_border.png" type="Texture" id=6]
+[ext_resource path="res://gui/map_marker.png" type="Texture" id=7]
 
 [sub_resource type="GDScript" id=1]
 script/source = "extends Control
@@ -15,7 +18,8 @@ const SOUNDS = {
 	\"Drop\" : preload(\"res://sounds/Drop.wav\"),
 	\"Activate\" :preload(\"res://sounds/Activate.wav\"),  # Unused
 	\"Deactivate\" : preload(\"res://sounds/Deactivate.wav\"),
-	\"Fail\" : preload(\"res://sounds/Fail.wav\")
+	\"Fail\" : preload(\"res://sounds/Fail.wav\"),
+	\"Charging\" : preload(\"res://sounds/Charging.wav\")
 	}
 
 const INVENTORY = preload(\"res://gui/Inventory.tscn\")
@@ -122,15 +126,22 @@ func _ready():
 	set_spell(0, \"Melee\")
 	set_spell(1, \"Fireball\")
 	set_spell(2, \"Teleport\")
+	set_spell(4, \"Mount\")
 	#set_spell(3, \"Levitate\")
 
+# Load spell into casting bar:
 func set_spell(n, title):
 	var spell = load(\"res://spells/\"+title+\".gd\").new()
 	spell.init(game.player)
 	spells[n] = spell
 	buts[n].set_spell(spell)
 
+# Set spell as active player spell:
 func select(n):
+	if game.player.spell != null:
+		game.player.spell.disconnect(\"start_try_casting\", game.hud, \"play_sound\")
+		game.player.spell.disconnect(\"stop_try_casting\", game.hud.audio, \"stop\")
+	
 	if not game.player.spell_timer.is_stopped():
 		game.player.stop_cast()
 	if n==selected:
@@ -148,6 +159,8 @@ func select(n):
 		else:
 			but.set_pressed(false)
 	game.player.spell = spells[n]
+	game.player.spell.connect(\"start_try_casting\", game.hud, \"play_sound\", [\"Charging\"])
+	game.player.spell.connect(\"stop_try_casting\", game.hud.audio, \"stop\")
 	selected = n
 
 func _input(event):
@@ -184,14 +197,29 @@ func _process(delta):
 	#else: set_visible(false)
 	else: set_value(0)"
 
-[sub_resource type="StyleBoxFlat" id=16]
+[sub_resource type="GDScript" id=16]
+script/source = "extends Control
+
+onready var rotor = get_node(\"Rotor\")
+onready var mat = rotor.get_node(\"Map\").get_material()
+
+func _ready():
+	mat.set_shader_param(\"map\", load(\"res://maps/\"+game.map_name+\"/map.png\"))
+
+func _process(delta):
+	var p = game.player.get_translation()
+	mat.set_shader_param(\"p\", Vector2(p.x, p.z)/1024)
+	
+	rotor.set_rotation(game.cam.dir)"
+
+[sub_resource type="StyleBoxFlat" id=17]
 bg_color = Color( 0.2, 0.2, 0.2, 0.784314 )
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[sub_resource type="GDScript" id=17]
+[sub_resource type="GDScript" id=18]
 script/source = "extends Panel
 
 onready var title = get_node(\"Title\")
@@ -221,25 +249,25 @@ func activate(obj):
 func deactivate():
 	set_visible(false)"
 
-[sub_resource type="DynamicFont" id=18]
+[sub_resource type="DynamicFont" id=19]
 size = 24
 font_data = ExtResource( 3 )
 
-[sub_resource type="StyleBoxFlat" id=19]
+[sub_resource type="StyleBoxFlat" id=20]
 bg_color = Color( 0.176471, 0.545098, 0, 1 )
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[sub_resource type="StyleBoxFlat" id=20]
+[sub_resource type="StyleBoxFlat" id=21]
 bg_color = Color( 0.2, 0.2, 0.2, 1 )
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[sub_resource type="StyleBoxFlat" id=21]
+[sub_resource type="StyleBoxFlat" id=22]
 bg_color = Color( 1, 0.894118, 0.341176, 0.639216 )
 corner_radius_top_left = 10
 corner_radius_top_right = 10
@@ -250,11 +278,11 @@ expand_margin_right = 10.0
 expand_margin_top = 5.0
 expand_margin_bottom = 5.0
 
-[sub_resource type="DynamicFont" id=22]
+[sub_resource type="DynamicFont" id=23]
 size = 24
 font_data = ExtResource( 3 )
 
-[sub_resource type="GDScript" id=23]
+[sub_resource type="GDScript" id=24]
 script/source = "extends Label
 
 onready var timer = get_node(\"Timer\")
@@ -386,7 +414,6 @@ text = "bag"
 script = SubResource( 11 )
 
 [node name="Spellbar" type="Panel" parent="."]
-editor/display_folded = true
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -412,15 +439,48 @@ value = 0.5
 percent_visible = false
 script = SubResource( 15 )
 
+[node name="Minimap" type="Control" parent="."]
+editor/display_folded = true
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -270.0
+margin_top = 50.0
+margin_right = -50.0
+margin_bottom = 270.0
+script = SubResource( 16 )
+
+[node name="Rotor" type="Control" parent="Minimap"]
+margin_right = 220.0
+margin_bottom = 220.0
+rect_pivot_offset = Vector2( 110, 110 )
+
+[node name="Map" type="ColorRect" parent="Minimap/Rotor"]
+material = ExtResource( 5 )
+margin_left = 10.0
+margin_top = 10.0
+margin_right = 210.0
+margin_bottom = 210.0
+rect_pivot_offset = Vector2( 100, 100 )
+
+[node name="Border" type="TextureRect" parent="Minimap/Rotor"]
+margin_right = 220.0
+margin_bottom = 220.0
+texture = ExtResource( 6 )
+
+[node name="Marker" type="TextureRect" parent="Minimap"]
+margin_right = 40.0
+margin_bottom = 40.0
+texture = ExtResource( 7 )
+
 [node name="ActorTooltip" type="Panel" parent="."]
 editor/display_folded = true
-margin_left = 546.431
-margin_top = 53.4037
-margin_right = 766.431
-margin_bottom = 108.403
+margin_left = 97.9838
+margin_top = 27.5566
+margin_right = 317.984
+margin_bottom = 82.5559
 mouse_filter = 2
-custom_styles/panel = SubResource( 16 )
-script = SubResource( 17 )
+custom_styles/panel = SubResource( 17 )
+script = SubResource( 18 )
 __meta__ = {
 "_edit_group_": true
 }
@@ -429,7 +489,7 @@ __meta__ = {
 anchor_right = 1.0
 anchor_bottom = 0.5
 margin_bottom = 10.0
-custom_fonts/font = SubResource( 18 )
+custom_fonts/font = SubResource( 19 )
 text = "Firstname Lastname"
 align = 1
 valign = 1
@@ -443,8 +503,8 @@ margin_top = 10.0
 margin_right = -10.0
 margin_bottom = -10.0
 mouse_filter = 2
-custom_styles/fg = SubResource( 19 )
-custom_styles/bg = SubResource( 20 )
+custom_styles/fg = SubResource( 20 )
+custom_styles/bg = SubResource( 21 )
 value = 50.0
 percent_visible = false
 
@@ -461,13 +521,13 @@ margin_bottom = -500.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
-custom_styles/normal = SubResource( 21 )
-custom_fonts/font = SubResource( 22 )
+custom_styles/normal = SubResource( 22 )
+custom_fonts/font = SubResource( 23 )
 custom_colors/font_color = Color( 0.133333, 0.133333, 0.133333, 1 )
 text = "Oh no!"
 align = 1
 valign = 1
-script = SubResource( 23 )
+script = SubResource( 24 )
 
 [node name="Timer" type="Timer" parent="Warning"]
 wait_time = 2.0

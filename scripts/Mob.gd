@@ -40,14 +40,15 @@ func set_state(s):
 
 func timeout():
 	.timeout()
-	match state:
-		S_DEAD:
-			spawn_area.mobs.erase(self)
-		S_ROAM:
-			target_coords = spawn_area.get_point()
-			timer.set_wait_time(rand_range(1, 10))
-			timer.start()
-		S_ATTACK:
-			if (get_translation()-spawn_area.get_translation()).length() > spawn_area.radius:
-				disconnect("killed", target, "confirm_kill")
-				set_state(S_ROAM)
+	if spawn_area != null:
+		match state:
+			S_DEAD:
+				spawn_area.mobs.erase(self)
+			S_ROAM:
+				target_coords = spawn_area.get_point()
+				timer.set_wait_time(rand_range(1, 10))
+				timer.start()
+			S_ATTACK:
+				if (translation-spawn_area.translation).length() > spawn_area.radius:
+					disconnect("killed", target, "confirm_kill")
+					set_state(S_ROAM)

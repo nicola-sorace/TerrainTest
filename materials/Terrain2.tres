@@ -1,7 +1,7 @@
 [gd_resource type="ShaderMaterial" load_steps=5 format=2]
 
 [ext_resource path="res://textures/dirt.jpg" type="Texture" id=1]
-[ext_resource path="res://maps/test3.png" type="Texture" id=2]
+[ext_resource path="res://maps/Test/terrain.png" type="Texture" id=2]
 [ext_resource path="res://textures/grass2.png" type="Texture" id=3]
 
 [sub_resource type="Shader" id=1]

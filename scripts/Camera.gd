@@ -99,7 +99,7 @@ func _unhandled_input(event):
 				if not mouse_hit.empty():
 					casting = true
 					game.player.start_cast(mouse_hit)
-			else:
+			elif casting:
 				casting = false
 				game.player.stop_cast()
 		elif event.button_index == BUTTON_RIGHT:
@@ -107,7 +107,7 @@ func _unhandled_input(event):
 				if not rotating_play and not mouse_hit.empty():
 					var obj = mouse_hit.collider
 					if obj != null and obj.is_class("Entity"):
-						if (obj.get_translation()-game.player.get_translation()).length() <= game.MELEE_RANGE:
+						if (obj.translation-game.player.translation).length() <= game.MELEE_RANGE:
 							obj.use()
 						elif obj.action != obj.A_NONE:
 							game.hud.show_warning("That is too far away.")
