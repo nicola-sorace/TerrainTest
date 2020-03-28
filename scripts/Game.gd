@@ -21,6 +21,8 @@ onready var sky = get_node("/root/root/WorldEnvironment").get_environment().get_
 onready var sun = get_node("/root/root/Sun")
 var time = 0.25
 
+var MOBILE = false
+
 func _ready():
 	randomize()
 	set_time(time)

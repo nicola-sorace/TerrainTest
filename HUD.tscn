@@ -1,9 +1,10 @@
-[gd_scene load_steps=28 format=2]
+[gd_scene load_steps=29 format=2]
 
 [ext_resource path="res://materials/Camera_shader.tres" type="Material" id=1]
 [ext_resource path="res://gui/QuestGradient.tres" type="StyleBox" id=2]
 [ext_resource path="res://fonts/black_chancery.TTF" type="DynamicFontData" id=3]
 [ext_resource path="res://scripts/QuestList.gd" type="Script" id=4]
+[ext_resource path="res://scripts/Joystick.gd" type="Script" id=5]
 
 [sub_resource type="GDScript" id=1]
 script/source = "extends Control
@@ -37,7 +38,8 @@ func show_warning(s):
 
 func play_sound(s):
 	audio.set_stream(SOUNDS[s])
-	audio.play()"
+	audio.play()
+"
 
 [sub_resource type="GradientTexture" id=2]
 
@@ -293,7 +295,6 @@ __meta__ = {
 }
 
 [node name="QuestList" type="Tree" parent="."]
-editor/display_folded = true
 anchor_bottom = 1.0
 margin_top = 200.0
 margin_right = 300.0
@@ -320,7 +321,6 @@ __meta__ = {
 }
 
 [node name="PlayerStatus" type="Panel" parent="."]
-editor/display_folded = true
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -359,7 +359,6 @@ value = 50.0
 percent_visible = false
 
 [node name="Actions" type="Panel" parent="."]
-editor/display_folded = true
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -386,7 +385,6 @@ text = "bag"
 script = SubResource( 11 )
 
 [node name="Spellbar" type="Panel" parent="."]
-editor/display_folded = true
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -413,7 +411,6 @@ percent_visible = false
 script = SubResource( 15 )
 
 [node name="ActorTooltip" type="Panel" parent="."]
-editor/display_folded = true
 margin_left = 546.431
 margin_top = 53.4037
 margin_right = 766.431
@@ -449,7 +446,6 @@ value = 50.0
 percent_visible = false
 
 [node name="Warning" type="Label" parent="."]
-editor/display_folded = true
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -477,3 +473,17 @@ one_shot = true
 volume_db = -15.0
 bus = "GUI"
 
+[node name="JoystickMove" type="ReferenceRect" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+script = ExtResource( 5 )
+
+[node name="JoystickCam" type="ReferenceRect" parent="."]
+margin_left = 100.0
+margin_right = 140.0
+margin_bottom = 40.0
+script = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+X = 0.75

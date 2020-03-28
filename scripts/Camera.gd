@@ -30,9 +30,18 @@ var underwater = false
 func _ready():
 	set_cursor(C_NORMAL)
 
+func _get_terrain_height() -> float:
+	var hit : Dictionary = get_world().get_direct_space_state().intersect_ray(translation + Vector3(0,500,0), translation + Vector3(0,-500,0), [self], 1)
+	if "position" in hit:
+		return hit.position.y
+	return 0.0
+
 func _process(delta):
-	
-	if rotating_view or rotating_play:
+	if game.MOBILE:
+		var v = game.hud.get_node("JoystickCam").v
+		dir += v.x*delta * 2
+		ang -= v.y*delta * 2
+	elif rotating_view or rotating_play:
 		var mouse = get_viewport().get_mouse_position()
 		var diff = mouse - last_mouse
 		dir -= diff.x/100
@@ -43,6 +52,7 @@ func _process(delta):
 	set_translation(Vector3(0, 2, 0))
 	set_rotation(Vector3(ang, dir, 0)-game.player.get_rotation())
 	translate_object_local(Vector3(0, 0, dist))
+	translation.y = max(_get_terrain_height()+2, translation.y)
 	
 	if not get_viewport().is_input_handled():
 		update_mouse_hit()
