@@ -26,13 +26,15 @@ __meta__ = {
 }
 
 [node name="Modes" type="HBoxContainer" parent="HUD"]
-editor/display_folded = true
 anchor_right = 1.0
 margin_left = 5.0
 margin_top = 5.0
 margin_right = -20.0
 margin_bottom = 45.0
 custom_constants/separation = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Terrain" type="Button" parent="HUD/Modes"]
 margin_right = 56.0
@@ -62,7 +64,6 @@ toggle_mode = true
 text = "Spawns"
 
 [node name="Actions" type="VBoxContainer" parent="HUD"]
-editor/display_folded = true
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -71,6 +72,9 @@ margin_top = 20.0
 margin_right = -20.0
 margin_bottom = -20.0
 custom_constants/separation = 10
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="GenMinimap" type="Button" parent="HUD/Actions"]
 margin_right = 180.0
@@ -143,7 +147,6 @@ script = ExtResource( 4 )
 transform = Transform( -4.37114e-08, -0.573577, -0.819152, 0, -0.819152, 0.573577, -1, 2.50718e-08, 3.58063e-08, 3.80288, 2.43916, 3.87081 )
 
 [node name="ViewportContainer" type="ViewportContainer" parent="."]
-editor/display_folded = true
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0

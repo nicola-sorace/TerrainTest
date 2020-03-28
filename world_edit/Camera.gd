@@ -22,7 +22,7 @@ func update_mouse_pos():
 	
 	if not mouse_pos.empty():
 		var m_p = mouse_pos.position
-		var p = Vector2(m_p.x, m_p.z)
+		var p = Vector2(m_p.x/terrain.SCALE, m_p.z/terrain.SCALE)
 		terrain.TOOL_SHADER.set_shader_param("pos", p)
 		
 		if hud.mode == 0 and Input.is_mouse_button_pressed(BUTTON_LEFT):

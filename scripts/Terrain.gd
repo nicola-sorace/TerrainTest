@@ -11,11 +11,12 @@ TODO:
 
 extends Spatial
 
-var terrain_material = preload("res://materials/Terrain2.tres")
+var TERRAIN_MATERIAL = preload("res://materials/Terrain2.tres")
 
 var img
 
-const TS = 64  # Tile size in pixels
+const TS = 64 # Tile size in pixels
+const SCALE = 1 # Map scale (meters per pixel)
 
 var tiles = [] # Holds the currently visible terrain tiles
 
@@ -36,7 +37,7 @@ var TILE = preload("res://objects/TerrainTile.tscn")
 
 func create_tile(x,y, res=0):
 	var tile = TILE.instance()
-	tile.init(x, y, img, Rect2(x*TS, y*TS, TS, TS), terrain_material)
+	tile.init(x, y, img, Rect2(x*TS, y*TS, TS, TS), TERRAIN_MATERIAL, SCALE)
 	if res!=0:
 		tile.set_res(res)
 	call_deferred("add_child", tile)
@@ -83,9 +84,10 @@ func update(args):
 	var desired_ress = {} # Stores desired tile resolutions. Index is 'x,y' string
 	for y_r in range(y-D, y+D+1):
 		for x_r in range(x-D, x+D+1):
-			var d = pow(x_r-x, 2) + pow(y_r-y, 2) # Avoid squareroot for efficiency
-			if d <= pow(D, 2): # Circular mask around player
-				desired_ress[ [x_r,y_r] ] = get_res(d)
+			if x_r>0 and y_r>0 and x_r<img.get_width()/TS-1 and y_r<img.get_height()/TS-1:
+				var d = pow(x_r-x, 2) + pow(y_r-y, 2) # Avoid squareroot for efficiency
+				if d <= pow(D, 2): # Circular mask around player
+					desired_ress[ [x_r,y_r] ] = get_res(d)
 	
 	for i in range(len(tiles)):
 		if abort_thread:
@@ -112,8 +114,8 @@ func update(args):
 
 func check_update():
 	var pos = game.player.translation
-	var x = int(pos.x/TS)
-	var y = int(pos.z/TS)
+	var x = int(pos.x/TS/SCALE)
+	var y = int(pos.z/TS/SCALE)
 	
 	if urgent_update:
 		print("Urgent terrain update")

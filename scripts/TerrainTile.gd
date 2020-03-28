@@ -11,6 +11,7 @@ var x
 var y
 var img
 var rect
+var SCALE
 
 var col_shape
 var mesh_inst
@@ -18,22 +19,23 @@ var water
 
 var res = null
 
-var terrain_material
+var TERRAIN_MATERIAL
 
-func init(x, y, img, rect, material):
+func init(x, y, img, rect, TERRAIN_MATERIAL, SCALE):
 	self.x = x
 	self.y = y
 	self.img = img
 	self.rect = rect
-	self.terrain_material = material
+	self.TERRAIN_MATERIAL = TERRAIN_MATERIAL
+	self.SCALE = SCALE
 	
 	col_shape = get_node("CollisionShape")
 	mesh_inst = get_node("MeshInstance")
 	water = get_node("Water")
 	
-	water.set_translation(Vector3(rect.size.x/2, game.WATER_LEVEL, rect.size.y/2))
+	water.set_translation(Vector3(rect.size.x/2*SCALE, game.WATER_LEVEL, rect.size.y/2*SCALE))
 	
-	call_deferred("set_translation", Vector3(rect.position.x, 0, rect.position.y))
+	call_deferred("set_translation", Vector3(rect.position.x*SCALE, 0, rect.position.y*SCALE))
 
 func set_res(res, force_refresh=false):
 	if res == self.res and not force_refresh:
@@ -44,8 +46,8 @@ func set_res(res, force_refresh=false):
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.add_smooth_group(true)
 	
-	for y in range(0, rect.size.y, res):
-		for x in range(0, rect.size.x, res):
+	for y in range(0, rect.size.y-res+1, res):
+		for x in range(0, rect.size.x-res+1, res):
 			add_vertex(st, x, y)
 			add_vertex(st, x+res, y)
 			add_vertex(st, x, y+res)
@@ -53,7 +55,7 @@ func set_res(res, force_refresh=false):
 			add_vertex(st, x, y+res)
 			add_vertex(st, x+res, y)
 	
-	st.set_material(terrain_material)
+	st.set_material(TERRAIN_MATERIAL)
 	st.generate_normals()
 	st.index()
 	
@@ -69,4 +71,4 @@ func add_vertex(st, x, y):
 	var g_y = y+rect.position.y
 	var v = img.get_pixel(g_x,g_y).r
 	st.add_uv(Vector2(g_x,g_y))
-	st.add_vertex(Vector3(float(x), v*64-32, float(y)))
+	st.add_vertex(Vector3(float(x)*SCALE, v*64-32, float(y)*SCALE))

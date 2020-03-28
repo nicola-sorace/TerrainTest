@@ -7,16 +7,13 @@ onready var map_cam = map_view.get_node("MapCamera")
 
 func _ready():
 	._ready()
-	set_block_dist(4)
-	terrain_material.set_next_pass(TOOL_SHADER)
+	TERRAIN_MATERIAL.set_next_pass(TOOL_SHADER)
 	
-	map_cam.set_size(TS)
-	#map_view.set_size(Vector2(TS,TS))
-	#gen_minimap()
+	map_cam.set_size(TS*SCALE)
 
 func gen_map():
 	var map = Image.new()
-	map.create(img.get_width(), img.get_height(), true, Image.FORMAT_RGB8)#Image.FORMAT_BPTC_RGBA)
+	map.create(img.get_width()*SCALE, img.get_height()*SCALE, true, Image.FORMAT_RGB8)
 	
 	set_block_dist(0)
 	TOOL_SHADER.set_shader_param("active", false)
@@ -24,14 +21,14 @@ func gen_map():
 	
 	for y in range(0, int(map.get_height()/TS)):
 		for x in range(0, int(map.get_width()/TS)):
-			map_cam.set_translation(Vector3((x+0.5)*TS, 100, (y+0.5)*TS))
+			map_cam.set_translation(Vector3((x+0.5)*TS*SCALE, 100, (y+0.5)*TS*SCALE))
 			urgent_update = true
 			update([x, y])
 			yield(get_tree(), "idle_frame")  # Lets camera position update
 			var shot = map_view.get_texture().get_data()
 			shot.flip_x()
 			shot.convert(map.get_format())
-			map.blit_rect(shot, Rect2(Vector2(0,0), shot.get_size()), Vector2(x*TS, y*TS))
+			map.blit_rect(shot, Rect2(Vector2(0,0), shot.get_size()), Vector2(x*TS*SCALE, y*TS*SCALE))
 	map.save_png("res://maps/"+game.map_name+"/map.png")
 	
 	set_block_dist(4)

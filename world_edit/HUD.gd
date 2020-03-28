@@ -35,7 +35,8 @@ func set_mode(i):
 	match i:
 		0:  # Terrain
 			terrain.TOOL_SHADER.set_shader_param("active", true)
-			for t in terrain_tools: submodes.add_item(t)
+			for t in terrain_tools:
+				submodes.add_item(t)
 	
 	submodes.select(0)
 	set_submode(0)
@@ -58,7 +59,7 @@ func set_tool_options(opts):
 		slider.set_max(o['max'])
 		slider.set_value(o['val'])
 		slider.set_step(o['step'])
-		slider.set_ticks(3)
+		slider.set_ticks(5)
 		slider.connect("value_changed", self, "set_tool_value", [i])
 		toolopts.add_child(slider)
 
@@ -72,9 +73,9 @@ func set_submode(i):
 
 	if mode == 0:
 		new_opts = ([
-		{'name':'Strength', 'min':0, 'max':1, 'step':0.01, 'val':0.5},
-		{'name':'Falloff', 'min':0, 'max':1, 'step':0.01, 'val':0.5}
-		])
+				{'name':'Strength', 'min':0, 'max':1, 'step':0.01, 'val':0.5},
+				{'name':'Falloff', 'min':0, 'max':1, 'step':0.01, 'val':0.5}
+			])
 		
 		if i == 2:
 			new_opts.append({'name':'Level', 'min':0, 'max':1, 'step':0.01, 'val':0.5})
@@ -104,13 +105,10 @@ func get_tool_value(center, rad, pos, d):
 							sum += (v-terrain.img.get_pixelv(coord).r)
 							n += 1
 				return v + sum/n * 100
-	
 	elif mode == 1:
 		pass
-	
 	return 0
 
 func action(i):
 	match i:
-		0:
-			terrain.gen_map()
+		0: terrain.gen_map()
