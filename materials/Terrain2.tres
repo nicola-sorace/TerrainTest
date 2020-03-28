@@ -29,4 +29,3 @@ shader_param/map_size = 1024.0
 shader_param/map = ExtResource( 2 )
 shader_param/dirt = ExtResource( 1 )
 shader_param/rock = ExtResource( 3 )
-

@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=2]
+[gd_scene load_steps=33 format=2]
 
 [ext_resource path="res://materials/Camera_shader.tres" type="Material" id=1]
 [ext_resource path="res://gui/QuestGradient.tres" type="StyleBox" id=2]
@@ -439,7 +439,6 @@ percent_visible = false
 script = SubResource( 15 )
 
 [node name="Minimap" type="Control" parent="."]
-editor/display_folded = true
 anchor_left = 1.0
 anchor_right = 1.0
 margin_left = -270.0
@@ -472,7 +471,6 @@ margin_bottom = 40.0
 texture = ExtResource( 8 )
 
 [node name="ActorTooltip" type="Panel" parent="."]
-editor/display_folded = true
 margin_left = 97.9838
 margin_top = 27.5566
 margin_right = 317.984
@@ -536,11 +534,13 @@ volume_db = -15.0
 bus = "GUI"
 
 [node name="JoystickMove" type="ReferenceRect" parent="."]
+visible = false
 margin_right = 40.0
 margin_bottom = 40.0
 script = ExtResource( 5 )
 
 [node name="JoystickCam" type="ReferenceRect" parent="."]
+visible = false
 margin_left = 100.0
 margin_right = 140.0
 margin_bottom = 40.0

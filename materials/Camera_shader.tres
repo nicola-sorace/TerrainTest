@@ -21,4 +21,3 @@ shader = SubResource( 1 )
 shader_param/shader = 0
 shader_param/S_NONE = 0
 shader_param/S_WATER = 1
-

@@ -20,6 +20,7 @@ ambient_light_sky_contribution = 0.5
 fog_enabled = true
 fog_color = Color( 0.839216, 0.917647, 0.980392, 1 )
 fog_depth_begin = 100.0
+fog_depth_end = 200.0
 fog_depth_curve = 1.7411
 dof_blur_far_distance = 200.0
 dof_blur_far_transition = 50.0
@@ -123,4 +124,3 @@ material/0 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="NPC"]
 shape = SubResource( 6 )
-

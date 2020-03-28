@@ -11,4 +11,3 @@ texture = SubResource( 2 )
 region_rect = Rect2( 0, 0, 2048, 1 )
 margin_left = 5.0
 margin_top = 55.0
-

@@ -83,4 +83,3 @@ shader_param/amplitude = 0.33
 shader_param/speed = 2.0
 shader_param/direction = Vector2( 1, 1 )
 shader_param/noise = SubResource( 3 )
-
