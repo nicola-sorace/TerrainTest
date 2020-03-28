@@ -7,9 +7,9 @@ This class also handles LOD based on distance from player.
 
 extends StaticBody
 
+var terrain
 var x
 var y
-var img
 var rect
 var SCALE
 
@@ -21,10 +21,10 @@ var res = null
 
 var TERRAIN_MATERIAL
 
-func init(x, y, img, rect, TERRAIN_MATERIAL, SCALE):
+func init(terrain, x, y, rect, TERRAIN_MATERIAL, SCALE):
+	self.terrain = terrain
 	self.x = x
 	self.y = y
-	self.img = img
 	self.rect = rect
 	self.TERRAIN_MATERIAL = TERRAIN_MATERIAL
 	self.SCALE = SCALE
@@ -69,6 +69,6 @@ func load_st(st):
 func add_vertex(st, x, y):
 	var g_x = x+rect.position.x  # 'g' for global
 	var g_y = y+rect.position.y
-	var v = img.get_pixel(g_x,g_y).r
+	var v = terrain.get_height(g_x, g_y)
 	st.add_uv(Vector2(g_x,g_y))
 	st.add_vertex(Vector3(float(x)*SCALE, v*64-32, float(y)*SCALE))

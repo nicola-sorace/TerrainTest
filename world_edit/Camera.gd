@@ -9,32 +9,38 @@ var ang = 0  # Altitude angle
 
 var rotating = false
 var last_mouse = Vector2(0,0)
+var last_p = Vector2(0,0) # Last mouse position on map, in pixels
+var mouse_down = false # True if mouse was already down last frame
 
-var mouse_pos = {}
 var rad = 10
+var brush_spacing = 5
+var dist_since_last_brush = 0.0
 
-
-func update_mouse_pos():
+func mouse_move():
 	var mouse = get_viewport().get_mouse_position()
 	var from = project_ray_origin(mouse)
 	var to = from + project_ray_normal(mouse) * 300
-	mouse_pos = get_world().get_direct_space_state().intersect_ray(from, to, [game.player], 1)
+	var mouse_hit = get_world().get_direct_space_state().intersect_ray(from, to, [game.player], 1)
 	
-	if not mouse_pos.empty():
-		var m_p = mouse_pos.position
+	if not mouse_hit.empty():
+		var m_p = mouse_hit.position
 		var p = Vector2(m_p.x/terrain.SCALE, m_p.z/terrain.SCALE)
 		terrain.TOOL_SHADER.set_shader_param("pos", p)
 		
 		if hud.mode == 0 and Input.is_mouse_button_pressed(BUTTON_LEFT):
-			terrain.save_img_hist()
-			for y in range(-rad, rad+1):
-				for x in range(-rad, rad+1):
-					var pos = Vector2(x,y)
-					var d = (rad-pos.length())/rad
-					
-					if d >= 0:
-						terrain.alter_point(p+pos, hud.get_tool_value(p, rad, pos+p, d))
-			terrain.update_rect(Rect2(p-Vector2(rad,rad), Vector2(rad*2,rad*2)))
+			if not mouse_down:
+				terrain.save_img_hist()
+			else:
+				dist_since_last_brush += (p-last_p).length()
+			if not mouse_down or dist_since_last_brush >= brush_spacing:
+				dist_since_last_brush = 0.0
+				hud.alter_zone_height(p, rad)
+				terrain.update_rect(Rect2(p-Vector2(rad,rad), Vector2(rad*2,rad*2)))
+			mouse_down = true
+		else:
+			mouse_down = false
+		
+		last_p = p
 
 func _process(delta):
 	if rotating:
@@ -64,10 +70,13 @@ func _unhandled_input(event):
 			terrain.TOOL_SHADER.set_shader_param("rad", rad)
 		else:
 			dist += scroll
+		
+		if event.button_index == BUTTON_LEFT and event.pressed:
+			mouse_move()
 	
 	elif event is InputEventMouseMotion:
 		if Input.is_mouse_button_pressed(BUTTON_RIGHT) and (last_mouse-get_viewport().get_mouse_position()).length()>20:
 			rotating = true
 			Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 		else:
-			update_mouse_pos()
+			mouse_move()

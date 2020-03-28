@@ -51,7 +51,7 @@ _global_script_class_icons={
 [application]
 
 config/name="TerrainTest"
-run/main_scene="res://world_edit/WorldEdit.tscn"
+run/main_scene="res://Main.tscn"
 config/icon="res://icon.png"
 
 [autoload]

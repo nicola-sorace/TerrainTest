@@ -98,6 +98,10 @@ margin_left = 5.0
 margin_top = 50.0
 margin_right = 245.0
 margin_bottom = 200.0
+focus_mode = 0
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="ToolOptions" type="Panel" parent="HUD"]
 anchor_bottom = 1.0

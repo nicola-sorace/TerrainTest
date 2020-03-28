@@ -37,7 +37,7 @@ var TILE = preload("res://objects/TerrainTile.tscn")
 
 func create_tile(x,y, res=0):
 	var tile = TILE.instance()
-	tile.init(x, y, img, Rect2(x*TS, y*TS, TS, TS), TERRAIN_MATERIAL, SCALE)
+	tile.init(self, x, y, Rect2(x*TS, y*TS, TS, TS), TERRAIN_MATERIAL, SCALE)
 	if res!=0:
 		tile.set_res(res)
 	call_deferred("add_child", tile)
@@ -66,6 +66,9 @@ func get_res(d):
 	if d <= 4: return 1
 	elif d <= 9: return 4
 	else: return 16
+
+func get_height(x, y):
+	return img.get_pixel(x,y).r
 
 """
 This function updates the terrain:

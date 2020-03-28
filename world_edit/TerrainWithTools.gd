@@ -35,8 +35,9 @@ func gen_map():
 	TOOL_SHADER.set_shader_param("active", true)
 	set_physics_process(true)
 
-func alter_point(p, d):
-	img.set_pixelv(p, Color(d, 0, 0))
+func alter_height(p, v):
+	var old = img.get_pixelv(p)
+	img.set_pixelv(p, Color(v, old.g, old.b))
 
 func update_rect(rect):
 	var coords = []

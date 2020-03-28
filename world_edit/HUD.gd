@@ -12,7 +12,7 @@ var mode = 0
 var submode = 0
 var opts = [{}]  # Tool options  {name, min, max, step, val}
 
-var terrain_tools = ["Add", "Subtract", "Level", "Smooth"]
+var terrain_tools = ["Add", "Subtract", "Level", "Flatten"]
 
 func _ready():
 	for i in range(len(mode_buts)):
@@ -57,8 +57,8 @@ func set_tool_options(opts):
 		var slider = HSlider.new()
 		slider.set_min(o['min'])
 		slider.set_max(o['max'])
-		slider.set_value(o['val'])
 		slider.set_step(o['step'])
+		slider.set_value(o['val'])
 		slider.set_ticks(5)
 		slider.connect("value_changed", self, "set_tool_value", [i])
 		toolopts.add_child(slider)
@@ -79,35 +79,39 @@ func set_submode(i):
 		
 		if i == 2:
 			new_opts.append({'name':'Level', 'min':0, 'max':1, 'step':0.01, 'val':0.5})
-	
 	set_tool_options(new_opts)
 
-# Return terrain tool's height change at point
-#  (pixel position, tool radius, normalized (0->1) distance from edge)
-func get_tool_value(center, rad, pos, d):
-	var strength = d * opts[0].val
-	var fallof = opts[1].val
-	var v = terrain.img.get_pixelv(pos).r
+# Change height in zone based on current tool settings
+func alter_zone_height(p, rad):
+	#var falloff = opts[1].val #TODO Use falloff
 	
-	if mode == 0:
-		match submode:
-			0: return v + strength * 0.1  # Add
-			1: return v + -strength * 0.1  # Subtract
-			2: return lerp(v, opts[2].val, strength)  # Level
-			3:  # Smooth
-				var sum = 0
-				var n = 1
-				for y in range(center.y-rad, center.y+rad+1):
-					for x in range(center.x-rad, center.x+rad+1):
-						var coord = Vector2(x,y)
-						var l = coord.length()
-						if l <= rad:
-							sum += (v-terrain.img.get_pixelv(coord).r)
-							n += 1
-				return v + sum/n * 100
-	elif mode == 1:
-		pass
-	return 0
+	# Some modes use a weighted average of pixel values
+	var mean
+	if submode == 3:
+		var sum = 0.0
+		mean = 0.0
+		for y in range(-rad, rad+1):
+			for x in range(-rad, rad+1):
+				var d = Vector2(x,y).length()/rad
+				if d <= 1:
+					mean += (1-d)*terrain.get_height(p.x+x, p.y+y)
+					sum += 1-d
+		mean /= sum
+	
+	for y in range(-rad, rad+1):
+		for x in range(-rad, rad+1):
+			var pos = Vector2(x, y)
+			var d = pos.length()/rad
+			if d <= 1:
+				var strength = (1-d) * opts[0].val
+				var old_v = terrain.get_height(p.x+x, p.y+y)
+				var v
+				match submode:
+					0: v = old_v + strength * 0.1
+					1: v = old_v - strength * 0.1
+					2: v = lerp(old_v, opts[2].val, strength)
+					3: v = lerp(old_v, mean, strength)
+				terrain.alter_height(p+pos, v)
 
 func action(i):
 	match i:
